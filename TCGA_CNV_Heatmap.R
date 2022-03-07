@@ -51,12 +51,12 @@
     CNV_Sum.df <- CNV.df
     
     if(CNVmode=="Dup"){
-      CNV_Sum.df["Sum",] <- apply(CNV_Sum.df, 2, function(a)sum(abs(a>0)))
-      CNV_Sum.df[,"Sum"] <- apply(CNV_Sum.df, 1, function(a)sum(abs(a>0)))
+      CNV_Sum.df["Sum",] <- apply(CNV_Sum.df, 2, function(a)sum(abs(which(a>0))))
+      CNV_Sum.df[,"Sum"] <- apply(CNV_Sum.df, 1, function(a)sum(abs(which(a>0))))
       
     }else if(CNVmode=="Del"){
-      CNV_Sum.df["Sum",] <- apply(CNV_Sum.df, 2, function(a)sum(abs(a<0)))
-      CNV_Sum.df[,"Sum"] <- apply(CNV_Sum.df, 1, function(a)sum(abs(a<0)))
+      CNV_Sum.df["Sum",] <- apply(CNV_Sum.df, 2, function(a)sum(abs(which(a<0))))
+      CNV_Sum.df[,"Sum"] <- apply(CNV_Sum.df, 1, function(a)sum(abs(which(a<0))))
       
     }else{
       CNV_Sum.df["Sum",] <- apply(CNV_Sum.df, 2, function(a)sum(abs(a)))
