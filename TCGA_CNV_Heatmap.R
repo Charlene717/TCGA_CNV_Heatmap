@@ -14,6 +14,7 @@
 ##### Function setting #####
   source("FUN_Beautify_ggplot.R")
   source("FUN_ggPlot_vline.R")
+  source("FUN_TOP_CNV.R")
 
 ##### Files setting and import * ##### 
   ## File setting*
@@ -46,40 +47,6 @@
   rm(Colname,Rowname)
   
 ##### Classify the TOP CNV data #####       
-  TOP_CNV <- function(CNV.df, CNVmode="Total", 
-                          TopNGene = 50,TopNSample = ncol(CNV.df)) { 
-    # CNVmode = c("Total","Dup","Del")
-    CNV_Sum.df <- CNV.df
-    
-    if(CNVmode=="Dup"){
-      CNV_Sum.df["Sum",] <- apply(CNV_Sum.df, 2, function(a)sum(abs(which(a>0))))
-      CNV_Sum.df[,"Sum"] <- apply(CNV_Sum.df, 1, function(a)sum(abs(which(a>0))))
-      
-    }else if(CNVmode=="Del"){
-      CNV_Sum.df["Sum",] <- apply(CNV_Sum.df, 2, function(a)sum(abs(which(a<0))))
-      CNV_Sum.df[,"Sum"] <- apply(CNV_Sum.df, 1, function(a)sum(abs(which(a<0))))
-      
-    }else{
-      CNV_Sum.df["Sum",] <- apply(CNV_Sum.df, 2, function(a)sum(abs(a)))
-      CNV_Sum.df[,"Sum"] <- apply(CNV_Sum.df, 1, function(a)sum(abs(a)))
-    }
- 
-    CNV_Top.df <- CNV_Sum.df %>% arrange(desc(Sum)) 
-    
-    CNV_Top.df <- CNV_Top.df[,!colnames(CNV_Top.df)==c("Sum")]
-    CNV_Top.df <- CNV_Top.df[!row.names(CNV_Top.df)==c("Sum"),]
-    
-    CNV_Top.df <- CNV_Top.df[1:TopNGene,1:TopNSample]
-    
-    CNV_Top_Gene.set <- row.names(CNV_Top.df)
-    CNV_Top_Sample.set <- colnames(CNV_Top.df)
-    
-    CNV_Top.lt <- list()
-    CNV_Top.lt[["Gene"]] <- CNV_Top_Gene.set
-    CNV_Top.lt[["Sample"]] <- CNV_Top_Sample.set
-    return(CNV_Top.lt)
-  }
-  
   # Total
   CNV_Top.lt <- TOP_CNV(CNV.df,CNVmode="Total")
   CNV_Top.df <- CNV.df[CNV_Top.lt[["Gene"]],CNV_Top.lt[["Sample"]]]
@@ -153,7 +120,10 @@
     Target_gene_Q <- GeneExp.df[Target_gene_name,] %>%
                      as.numeric() %>% quantile()
 
-  ##### Group the expression matrix according to the expression level of Target gene ####  
+  ##### Group the expression matrix according to the expression level of Target gene #### 
+    GeneExp_TarGene.df <- GeneExp.df[Target_gene_name,] 
+    GeneExp_TarGene.df <- GeneExp_TarGene.df[,order(GeneExp_TarGene.df[1,])]
+    
     if(Mode_Group$Mode=="Mean"){
       if(Mode_Group$SD==0){
         GeneExp_high.set <- colnames(GeneExp.df)[GeneExp.df[Target_gene_name,] >= Target_gene_Mean+Target_gene_SD*(Mode_Group$SD)]
@@ -164,6 +134,17 @@
       }
       #rm(Target_gene_Mean, Target_gene_SD)
       
+      ## GeneExp_medium.set
+        # # Test
+        # min(abs(GeneExp_TarGene.df[1,]-Target_gene_Mean))
+        # which(GeneExp_TarGene.df==10.5429) 
+        
+        Len <- length(c(GeneExp_high.set,GeneExp_low.set))
+        Mean <- min(abs(GeneExp_TarGene.df[1,]-Target_gene_Mean)) 
+        Mean.loc <- which(GeneExp_TarGene.df[1,]-Target_gene_Mean == Mean)
+        GeneExp_medium.set <- colnames(GeneExp_TarGene.df)[(Mean.loc-Len/2):(Mean.loc+Len/2)]
+        rm(Len,Mean,Mean.loc)
+      
     }else{
       if(Mode_Group$Q2=="Only"){ # Mode="Quartile"
         GeneExp_high.set <- colnames(GeneExp.df)[GeneExp.df[Target_gene_name,] >= Target_gene_Q[3]]
@@ -173,11 +154,18 @@
         GeneExp_low.set <- colnames(GeneExp.df)[GeneExp.df[Target_gene_name,] <= Target_gene_Q[2]]
       }
       #rm(Target_gene_Q)
-      
+
+        Len <- length(c(GeneExp_high.set,GeneExp_low.set))
+        Q2 <- min(abs(GeneExp_TarGene.df[1,]-Target_gene_Q[2])) 
+        Q2.loc <- which(GeneExp_TarGene.df[1,]-Target_gene_Q[2] == Q2)
+        GeneExp_medium.set <- colnames(GeneExp_TarGene.df)[(Q2.loc-Len/2):(Q2.loc+Len/2)]
+        rm(Len,Q2,Q2.loc)
     }
     
-    GeneExp_medium.set <- setdiff(colnames(GeneExp.df),
-                                  c(GeneExp_high.set,GeneExp_low.set))
+    # GeneExp_medium.set <- setdiff(colnames(GeneExp.df),
+    #                               c(GeneExp_high.set,GeneExp_low.set))
+    
+    rm(GeneExp_TarGene.df)
     
   ##### Visualization #####  
     ## https://www.jianshu.com/p/9e5b7ffcf80f
@@ -262,30 +250,36 @@
     # GeneExp_medium.set <- setdiff(colnames(GeneExp.df),
     #                               c(GeneExp_high.set,GeneExp_low.set))
     
-    GeneExp_Anno.df <- data.frame(Sample = c(GeneExp_high.set, GeneExp_low.set, GeneExp_medium.set),
+    TarGeGroup.set <- c(GeneExp_high.set, GeneExp_low.set, GeneExp_medium.set)
+    GeneExp_Anno.df <- data.frame(Sample = TarGeGroup.set,
                                   TarGene = c(rep("High",length(GeneExp_high.set)),
                                               rep("Low",length(GeneExp_low.set)),
                                               rep("Med",length(GeneExp_medium.set))))
 
     
-    CNV_TGH.df <- CNV.df[,colnames(CNV.df) %in% 
-                           c(GeneExp_high.set,GeneExp_low.set, GeneExp_medium.set)] 
+    CNV_TGH.df <- CNV.df[,colnames(CNV.df) %in% TarGeGroup.set] 
     CNV_Anno.df <- data.frame(Sample = colnames(CNV_TGH.df))
     CNV_Anno.df <- left_join(CNV_Anno.df,GeneExp_Anno.df)
       
     # Total
-    CNV_TOP_TGH.lt <- TOP_CNV(CNV_TGH.df, CNVmode="Total")
-    CNV_TOP_TGH.df <- CNV.df[CNV_TOP_TGH.lt[["Gene"]],CNV_TOP_TGH.lt[["Sample"]]]
+    CNV_TOP.lt <- TOP_CNV(CNV.df, CNVmode="Total",TopNGene = 2000)
+    CNV_TOP.df <- CNV.df[CNV_TOP.lt[["Gene"]],CNV_TOP.lt[["Sample"]]]
+    CNV_TOP_TGH.df <- CNV_TOP.df[,colnames(CNV.df) %in% TarGeGroup.set]
+    CNV_TOP_TGH.df <- CNV_TOP.df[,CNV_Anno.df$Sample]
+    
+    ## Check
+    colnames(CNV_TOP_TGH.df) == CNV_Anno.df$Sample
     
     # Dup
-    CNV_TOP_Dup_TGH.lt <- TOP_CNV(CNV_TGH.df, CNVmode="Dup")
-    CNV_TOP_Dup_TGH.df <- CNV.df[CNV_TOP_Dup_TGH.lt[["Gene"]],
-                                 CNV_TOP_Dup_TGH.lt[["Sample"]]]
+    CNV_TOP_Dup.lt <- TOP_CNV(CNV.df, CNVmode="Dup",TopNGene = 2000)
+    CNV_TOP_Dup.df <- CNV.df[CNV_TOP_Dup.lt[["Gene"]],CNV_TOP_Dup.lt[["Sample"]]]
+    CNV_TOP_Dup_TGH.df <- CNV_TOP_Dup.df[,colnames(CNV.df) %in% TarGeGroup.set]
+    
     
     # Del
-    CNV_TOP_Del_TGH.lt <- TOP_CNV(CNV_TGH.df, CNVmode="Del")
-    CNV_TOP_Del_TGH.df <- CNV.df[CNV_TOP_Del_TGH.lt[["Gene"]],
-                                 CNV_TOP_Del_TGH.lt[["Sample"]]]
+    CNV_TOP_Del.lt <- TOP_CNV(CNV.df, CNVmode="Del",TopNGene = 2000)
+    CNV_TOP_Del.df <- CNV.df[CNV_TOP_Del.lt[["Gene"]],CNV_TOP_Del.lt[["Sample"]]]
+    CNV_TOP_Del_TGH.df <- CNV_TOP_Del.df[,colnames(CNV.df) %in% TarGeGroup.set]
     
     # TOP Dup+Del
     CNV_Top_All_TGH.df <- rbind(CNV_TOP_Dup_TGH.df, CNV_TOP_Del_TGH.df)
@@ -311,18 +305,27 @@
       column_ha = HeatmapAnnotation(TarGene = CNV_Anno.df$TarGene,
                   col = list(TarGene = c("High" = "#e04f70", "Low" = "#4474db" ,"Med" ="#adadad")))
       Heatmap(CNV_TOP_TGH.df , name = "Num", col = col_fun, 
-              show_column_names = F, top_annotation = column_ha)
+              show_column_names = F,show_row_names = F, 
+              cluster_columns = F, top_annotation = column_ha)
+      
+      # CNV_Top_All_TGH.df
+      col_fun = colorRamp2(c(min(CNV_Top_All_TGH.df), 0, max(CNV_Top_All_TGH.df)), 
+                           c( "#02994d","#0c1829", "#e81c4b"))
+      column_ha = HeatmapAnnotation(TarGene = CNV_Anno.df$TarGene,
+                                    col = list(TarGene = c("High" = "#e04f70", "Low" = "#4474db" ,"Med" ="#adadad")))
+      Heatmap(CNV_Top_All_TGH.df , name = "Num", col = col_fun, 
+              show_column_names = F,show_row_names = F, 
+              cluster_columns = T, top_annotation = column_ha)
       
       
-      
-    ## Annotation
-    
-    set.seed(123)
-    mat = matrix(rnorm(100), 10)
-    rownames(mat) = paste0("R", 1:10)
-    colnames(mat) = paste0("C", 1:10)
-    column_ha = HeatmapAnnotation(foo1 = runif(10), bar1 = anno_barplot(runif(10)))
-    row_ha = rowAnnotation(foo2 = runif(10), bar2 = anno_barplot(runif(10)))
-    Heatmap(mat, name = "mat", top_annotation = column_ha, right_annotation = row_ha)
+    # ## Annotation
+    # 
+    # set.seed(123)
+    # mat = matrix(rnorm(100), 10)
+    # rownames(mat) = paste0("R", 1:10)
+    # colnames(mat) = paste0("C", 1:10)
+    # column_ha = HeatmapAnnotation(foo1 = runif(10), bar1 = anno_barplot(runif(10)))
+    # row_ha = rowAnnotation(foo2 = runif(10), bar2 = anno_barplot(runif(10)))
+    # Heatmap(mat, name = "mat", top_annotation = column_ha, right_annotation = row_ha)
     
     
