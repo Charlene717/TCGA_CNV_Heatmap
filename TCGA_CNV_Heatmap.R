@@ -51,45 +51,46 @@
   CNV_Top_Sum.lt <- list()
   
   # Total
-  CNV_Top.lt <- TOP_CNV(CNV.df,CNVmode="Total")
-  CNV_Top.df <- CNV.df[CNV_Top.lt[["Gene"]],CNV_Top.lt[["Sample"]]]
-  
+  CNV_Top_Sum.lt[["CNV_Top.lt"]] <- TOP_CNV(CNV.df,CNVmode="Total")
+  CNV_Top_Sum.lt[["CNV_Top.df"]] <- CNV.df[CNV_Top_Sum.lt[["CNV_Top.lt"]][["Gene"]],
+                                           CNV_Top_Sum.lt[["CNV_Top.lt"]][["Sample"]]]
+
   # Dup
-  CNV_Top_Dup.lt <- TOP_CNV(CNV.df,CNVmode="Dup")
-  CNV_Top_Dup.df <- CNV.df[CNV_Top_Dup.lt[["Gene"]],CNV_Top_Dup.lt[["Sample"]]]
+  CNV_Top_Sum.lt[["CNV_Top_Dup.lt"]] <- TOP_CNV(CNV.df,CNVmode="Dup")
+  CNV_Top_Sum.lt[["CNV_Top_Dup.df"]] <- CNV.df[CNV_Top_Sum.lt[["CNV_Top_Dup.lt"]][["Gene"]],
+                                               CNV_Top_Sum.lt[["CNV_Top_Dup.lt"]][["Sample"]]]
   
   # Del
-  CNV_Top_Del.lt <- TOP_CNV(CNV.df,CNVmode="Del")
-  CNV_Top_Del.df <- CNV.df[CNV_Top_Del.lt[["Gene"]],CNV_Top_Del.lt[["Sample"]]]
+  CNV_Top_Sum.lt[["CNV_Top_Del.lt"]] <- TOP_CNV(CNV.df,CNVmode="Del")
+  CNV_Top_Sum.lt[["CNV_Top_Del.df"]] <- CNV.df[CNV_Top_Sum.lt[["CNV_Top_Del.lt"]][["Gene"]],
+                                               CNV_Top_Sum.lt[["CNV_Top_Del.lt"]][["Sample"]]]
   
   # TOP Dup+Del
-  CNV_Top_2D.df <- rbind(CNV_Top_Dup.df,CNV_Top_Del.df)
+  CNV_Top_Sum.lt[["CNV_Top_2D.df"]] <- rbind(CNV_Top_Sum.lt[["CNV_Top_Dup.df"]],
+                                             CNV_Top_Sum.lt[["CNV_Top_Del.df"]])
 
   
 ##### Primary CNV Heatmap #####  
-  Heatmap(CNV_Top.df, use_raster=T)
+  # Heatmap(CNV_Top_Sum.lt[["CNV_Top.df"]], use_raster=T)
 
   library(circlize)
-  col_fun = colorRamp2(c(min(CNV_Top.df), 0, max(CNV_Top.df)), 
+  col_fun = colorRamp2(c(min(CNV.df), 0, max(CNV.df)), 
                        c( "#2776e6","white", "#db3784"))
-  col_fun = colorRamp2(c(min(CNV_Top.df), 0, max(CNV_Top.df)), 
+  col_fun = colorRamp2(c(min(CNV.df), 0, max(CNV.df)), 
                        c( "#2776e6","#0c1829", "#db3784"))
   
-  col_fun = colorRamp2(c(min(CNV_Top.df), 0, max(CNV_Top.df)), 
+  col_fun = colorRamp2(c(min(CNV.df), 0, max(CNV.df)), 
                        c( "#02994d","#0c1829", "#e81c4b"))
   col_fun(seq(-3, 3))
   
-  Heatmap(CNV_Top.df, name = "Num", col = col_fun, 
+  Heatmap(CNV_Top_Sum.lt[["CNV_Top.df"]], name = "Num", col = col_fun, 
           show_column_names = F)
-  Heatmap(CNV_Top_Dup.df, name = "Num", col = col_fun, 
+  Heatmap(CNV_Top_Sum.lt[["CNV_Top_Dup.df"]], name = "Num", col = col_fun, 
           show_column_names = F)
-  Heatmap(CNV_Top_Del.df, name = "Num", col = col_fun, 
+  Heatmap(CNV_Top_Sum.lt[["CNV_Top_Del.df"]], name = "Num", col = col_fun, 
           show_column_names = F)
   
-  col_fun = colorRamp2(c(min(CNV_Top_2D.df), 0, max(CNV_Top_2D.df)), 
-                       c("#02994d","#0c1829", "#e81c4b"))
-  col_fun(seq(-3, 3))
-  Heatmap(CNV_Top_2D.df, name = "Num", col = col_fun, 
+  Heatmap(CNV_Top_Sum.lt[["CNV_Top_2D.df"]], name = "Num", col = col_fun, 
           show_column_names = F)
   
   
