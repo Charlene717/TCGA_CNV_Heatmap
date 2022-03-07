@@ -51,17 +51,17 @@
   CNV_Top_Sum.lt <- list()
   
   # Total
-  CNV_Top_Sum.lt[["CNV_Top.lt"]] <- TOP_CNV(CNV.df,CNVmode="Total")
+  CNV_Top_Sum.lt[["CNV_Top.lt"]] <- TOP_CNV(CNV.df,CNVmode="Total",TopNGene = 2000)
   CNV_Top_Sum.lt[["CNV_Top.df"]] <- CNV.df[CNV_Top_Sum.lt[["CNV_Top.lt"]][["Gene"]],
                                            CNV_Top_Sum.lt[["CNV_Top.lt"]][["Sample"]]]
 
   # Dup
-  CNV_Top_Sum.lt[["CNV_Top_Dup.lt"]] <- TOP_CNV(CNV.df,CNVmode="Dup")
+  CNV_Top_Sum.lt[["CNV_Top_Dup.lt"]] <- TOP_CNV(CNV.df,CNVmode="Dup",TopNGene = 2000)
   CNV_Top_Sum.lt[["CNV_Top_Dup.df"]] <- CNV.df[CNV_Top_Sum.lt[["CNV_Top_Dup.lt"]][["Gene"]],
                                                CNV_Top_Sum.lt[["CNV_Top_Dup.lt"]][["Sample"]]]
   
   # Del
-  CNV_Top_Sum.lt[["CNV_Top_Del.lt"]] <- TOP_CNV(CNV.df,CNVmode="Del")
+  CNV_Top_Sum.lt[["CNV_Top_Del.lt"]] <- TOP_CNV(CNV.df,CNVmode="Del",TopNGene = 2000)
   CNV_Top_Sum.lt[["CNV_Top_Del.df"]] <- CNV.df[CNV_Top_Sum.lt[["CNV_Top_Del.lt"]][["Gene"]],
                                                CNV_Top_Sum.lt[["CNV_Top_Del.lt"]][["Sample"]]]
   
@@ -84,14 +84,14 @@
   col_fun(seq(-3, 3))
   
   Heatmap(CNV_Top_Sum.lt[["CNV_Top.df"]], name = "Num", col = col_fun, 
-          show_column_names = F)
+          show_column_names = F, show_row_names = F)
   Heatmap(CNV_Top_Sum.lt[["CNV_Top_Dup.df"]], name = "Num", col = col_fun, 
-          show_column_names = F)
+          show_column_names = F, show_row_names = F)
   Heatmap(CNV_Top_Sum.lt[["CNV_Top_Del.df"]], name = "Num", col = col_fun, 
-          show_column_names = F)
+          show_column_names = F, show_row_names = F)
   
   Heatmap(CNV_Top_Sum.lt[["CNV_Top_2D.df"]], name = "Num", col = col_fun, 
-          show_column_names = F)
+          show_column_names = F, show_row_names = F)
   
   
   
@@ -105,29 +105,17 @@
     rm(GeneExp_colname)
     
   ##### Extract Target gene and Statistics ####
-    # Extract data with Target_gene_name
-    Target_gene_Mean <- GeneExp.df[Target_gene_name,] %>%
-                        as.numeric() %>% mean()
-    
-    #rowMeans(data.matrix(Target_gene))
-    Target_gene_SD <- GeneExp.df[Target_gene_name,] %>%
-                      as.numeric() %>% sd()
-    
-    # Quartile
-    Target_gene_Q <- GeneExp.df[Target_gene_name,] %>%
-                     as.numeric() %>% quantile()
-
     GeneExp_Group.lt <- GeneExp_Group(GeneExp.df, Target_gene_name, 
                                       Mode="Mean",SD=1)
+    # GeneExp_Group.lt[["GeneExp_medium.set"]] <- setdiff(colnames(GeneExp.df),
+    #                                             c(GeneExp_Group.lt[["GeneExp_high.set"]],GeneExp_Group.lt[["GeneExp_low.set"]]))
     
 ##### CNV Heatmap of Gene expression group #####  
     # TGH: Target gene high
     # TGL: Target gene low
     # TGM: Target gene medium
-    
-    # GeneExp_Group.lt[["GeneExp_medium.set"]] <- setdiff(colnames(GeneExp.df),
-    #                                             c(GeneExp_Group.lt[["GeneExp_high.set"]],GeneExp_Group.lt[["GeneExp_low.set"]]))
-    
+    # TGS: Target gene Sum
+
     TarGeGroup.set <- c(GeneExp_Group.lt[["GeneExp_high.set"]], GeneExp_Group.lt[["GeneExp_low.set"]], 
                         GeneExp_Group.lt[["GeneExp_medium.set"]])
     Anno_GeneExp.df <- data.frame(Sample = TarGeGroup.set,
@@ -136,66 +124,73 @@
                                               rep("Med",length(GeneExp_Group.lt[["GeneExp_medium.set"]]))))
 
     
-    CNV_TGH.df <- CNV.df[,colnames(CNV.df) %in% TarGeGroup.set] 
-    Anno_CNV.df <- data.frame(Sample = colnames(CNV_TGH.df))
-    Anno_CNV.df <- left_join(Anno_CNV.df,Anno_GeneExp.df)
+    CNV_TGS.df <- CNV.df[,colnames(CNV.df) %in% TarGeGroup.set] 
+    Anno_CNV.df <- data.frame(Sample = colnames(CNV_TGS.df))
+    Anno_CNV.df <- left_join(Anno_CNV.df,Anno_GeneExp.df) %>% arrange(TarGene)
       
-    # Total
-    CNV_Top.lt <- TOP_CNV(CNV.df, CNVmode="Total",TopNGene = 2000)
-    CNV_Top.df <- CNV.df[CNV_Top.lt[["Gene"]],CNV_Top.lt[["Sample"]]]
-    CNV_TGH_Top.df <- CNV_Top.df[,colnames(CNV.df) %in% TarGeGroup.set]
-    CNV_TGH_Top.df <- CNV_Top.df[,Anno_CNV.df$Sample]
+    ### Total
+    # CNV_Top.lt <- TOP_CNV(CNV.df, CNVmode="Total",TopNGene = 2000)
+    # CNV_Top.df <- CNV.df[CNV_Top.lt[["Gene"]],CNV_Top.lt[["Sample"]]]
     
+    # ## Try
+    # CNV_TGS_Top1.df <- CNV_Top_Sum.lt[["CNV_Top.df"]][,colnames(CNV_Top_Sum.lt[["CNV_Top.df"]]) 
+    #                                                  %in% TarGeGroup.set]
+    # CNV_TGS_Top2.df <- CNV_Top_Sum.lt[["CNV_Top.df"]][,Anno_CNV.df$Sample]
+    # 
+    # ## Check
+    # CNV_TGS_Top1.df == CNV_TGS_Top2.df
+    
+    ### Total
+    CNV_TGS_Top.df <- CNV_Top_Sum.lt[["CNV_Top.df"]][,Anno_CNV.df$Sample]
     ## Check
-    colnames(CNV_TGH_Top.df) == Anno_CNV.df$Sample
+    colnames(CNV_TGS_Top.df) == Anno_CNV.df$Sample
+
+    ### Dup
+    # CNV_Top_Dup.lt <- TOP_CNV(CNV.df, CNVmode="Dup",TopNGene = 2000)
+    # CNV_Top_Dup.df <- CNV.df[CNV_Top_Dup.lt[["Gene"]],CNV_Top_Dup.lt[["Sample"]]]
+    CNV_TGS_Top_Dup.df <- CNV_Top_Sum.lt[["CNV_Top_Dup.df"]][,Anno_CNV.df$Sample]
     
-    # Dup
-    CNV_Top_Dup.lt <- TOP_CNV(CNV.df, CNVmode="Dup",TopNGene = 2000)
-    CNV_Top_Dup.df <- CNV.df[CNV_Top_Dup.lt[["Gene"]],CNV_Top_Dup.lt[["Sample"]]]
-    CNV_TGH_Top_Dup.df <- CNV_Top_Dup.df[,colnames(CNV.df) %in% TarGeGroup.set]
+    
+    ### Del
+    # CNV_Top_Del.lt <- TOP_CNV(CNV.df, CNVmode="Del",TopNGene = 2000)
+    # CNV_Top_Del.df <- CNV.df[CNV_Top_Del.lt[["Gene"]],CNV_Top_Del.lt[["Sample"]]]
+    # CNV_TGS_Top_Del.df <- CNV_Top_Del.df[,colnames(CNV.df) %in% TarGeGroup.set]
+    CNV_TGS_Top_Del.df <- CNV_Top_Sum.lt[["CNV_Top_Del.df"]][,Anno_CNV.df$Sample]
     
     
-    # Del
-    CNV_Top_Del.lt <- TOP_CNV(CNV.df, CNVmode="Del",TopNGene = 2000)
-    CNV_Top_Del.df <- CNV.df[CNV_Top_Del.lt[["Gene"]],CNV_Top_Del.lt[["Sample"]]]
-    CNV_TGH_Top_Del.df <- CNV_Top_Del.df[,colnames(CNV.df) %in% TarGeGroup.set]
     
-    # TOP Dup+Del
-    CNV_TGH_Top_2D.df <- rbind(CNV_TGH_Top_Dup.df, CNV_TGH_Top_Del.df)
+    ### TOP Dup+Del
+    CNV_TGS_Top_2D.df <- rbind(CNV_TGS_Top_Dup.df, CNV_TGS_Top_Del.df)
+    ## Check
+    colnames(CNV_TGS_Top_2D.df) == Anno_CNV.df$Sample
+    
     
     ##### CNV Heatmap #####
-      col_fun = colorRamp2(c(min(CNV_TGH_Top.df), 0, max(CNV_TGH_Top.df)), 
-                           c( "#02994d","#0c1829", "#e81c4b"))
-      col_fun = colorRamp2(c(min(CNV_TGH_Top_2D.df), 0, max(CNV_TGH_Top_2D.df)), 
-                           c( "#02994d","#0c1829", "#e81c4b"))
-      col_fun(seq(-3, 3))
-    
-      Heatmap(CNV_TGH_Top.df, name = "Num", col = col_fun, 
-              show_column_names = F)
-      Heatmap(CNV_TGH_Top_Dup.df, name = "Num", col = col_fun, 
-              show_column_names = F)
-      Heatmap(CNV_TGH_Top_Del.df, name = "Num", col = col_fun, 
-              show_column_names = F)
-      Heatmap(CNV_TGH_Top_2D.df, name = "Num", col = col_fun, 
-              show_column_names = F)
+    ## Ref: https://bioconductor.riken.jp/packages/3.4/bioc/vignettes/ComplexHeatmap/inst/doc/s9.examples.html
+
+      # Heatmap(CNV_TGS_Top.df, name = "Num", col = col_fun, 
+      #         show_column_names = F)
+      # Heatmap(CNV_TGS_Top_Dup.df, name = "Num", col = col_fun, 
+      #         show_column_names = F)
+      # Heatmap(CNV_TGS_Top_Del.df, name = "Num", col = col_fun, 
+      #         show_column_names = F)
+      # Heatmap(CNV_TGS_Top_2D.df, name = "Num", col = col_fun, 
+      #         show_column_names = F)
       
-      col_fun = colorRamp2(c(min(CNV_TGH_Top.df), 0, max(CNV_TGH_Top.df)), 
-                           c( "#02994d","#0c1829", "#e81c4b"))
       column_ha = HeatmapAnnotation(TarGene = Anno_CNV.df$TarGene,
                   col = list(TarGene = c("High" = "#e04f70", "Low" = "#4474db" ,"Med" ="#adadad")))
-      Heatmap(CNV_TGH_Top.df , name = "Num", col = col_fun, 
-              show_column_names = F,show_row_names = F, 
-              cluster_columns = F, top_annotation = column_ha)
-      
-      # CNV_TGH_Top_2D.df
-      col_fun = colorRamp2(c(min(CNV_TGH_Top_2D.df), 0, max(CNV_TGH_Top_2D.df)), 
-                           c( "#02994d","#0c1829", "#e81c4b"))
-      column_ha = HeatmapAnnotation(TarGene = Anno_CNV.df$TarGene,
-                                    col = list(TarGene = c("High" = "#e04f70", "Low" = "#4474db" ,"Med" ="#adadad")))
-      Heatmap(CNV_TGH_Top_2D.df , name = "Num", col = col_fun, 
+      Heatmap(CNV_TGS_Top.df , name = "Num", col = col_fun, 
               show_column_names = F,show_row_names = F, 
               cluster_columns = T, top_annotation = column_ha)
       
+      # CNV_TGS_Top_2D.df
+      column_ha = HeatmapAnnotation(TarGene = Anno_CNV.df$TarGene,
+                                    col = list(TarGene = c("High" = "#e04f70", "Low" = "#4474db" ,"Med" ="#adadad")))
+      Heatmap(CNV_TGS_Top_2D.df , name = "Num", col = col_fun, 
+              show_column_names = F,show_row_names = F, 
+              cluster_columns = T, top_annotation = column_ha)
+      
+      rm(column_ha)
       
     # ## Annotation
     # 
