@@ -33,3 +33,15 @@ TOP_CNV <- function(CNV.df, CNVmode="Total",
   
   return(CNV_Top.lt)
 }
+
+# ## Old Version ## 
+# # CNV.df["Sum",] <- apply(CNV.df, 2, function(a)sum(abs(a)))
+# # CNV.df[,"Sum"] <- apply(CNV.df, 1, function(a)sum(abs(a)))
+# # CNV_Top.df <- CNV.df %>% arrange(desc(Sum)) 
+# # CNV_Top.df <- CNV_Top.df[2:51,1:(ncol(CNV_Top.df)-1)]
+# 
+# # ## Check ##  
+# # SumTestC1 <- sum(abs(CNV.df[,1]))
+# # SumTestR1 <- sum(abs(CNV.df[1,]))
+# # SumTestC.All <-apply(CNV.df, 2, function(a)sum(abs(a)))
+# # SumTestR.All <-apply(CNV.df, 1, function(a)sum(abs(a)))
