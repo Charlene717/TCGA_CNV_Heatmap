@@ -47,13 +47,23 @@
 ##### Classify the CNV data #####       
   ClassifyCNV <- function(CNV.df, CNVmode="Total", 
                           TopNGene = 50,TopNSample = ncol(CNV.df)) { 
-    # mode = c("Total","Dup","Del")
-    if(CNVmode=="Total"){
-      CNV_Sum.df <- CNV.df
+    # CNVmode = c("Total","Dup","Del")
+    CNV_Sum.df <- CNV.df
+    
+    if(CNVmode=="Dup"){
+      CNV_Sum.df["Sum",] <- apply(CNV_Sum.df, 2, function(a)sum(abs(a>0)))
+      CNV_Sum.df[,"Sum"] <- apply(CNV_Sum.df, 1, function(a)sum(abs(a>0)))
+      
+    }else if(CNVmode=="Del"){
+      CNV_Sum.df["Sum",] <- apply(CNV_Sum.df, 2, function(a)sum(abs(a<0)))
+      CNV_Sum.df[,"Sum"] <- apply(CNV_Sum.df, 1, function(a)sum(abs(a<0)))
+      
+    }else{
+      CNV_Sum.df["Sum",] <- apply(CNV_Sum.df, 2, function(a)sum(abs(a)))
+      CNV_Sum.df[,"Sum"] <- apply(CNV_Sum.df, 1, function(a)sum(abs(a)))
+      
     }
     
-    CNV_Sum.df["Sum",] <- apply(CNV_Sum.df, 2, function(a)sum(abs(a)))
-    CNV_Sum.df[,"Sum"] <- apply(CNV_Sum.df, 1, function(a)sum(abs(a)))
     
     CNV_Top.df <- CNV_Sum.df %>% arrange(desc(Sum)) 
     
@@ -70,8 +80,21 @@
     CNV_Top.lt[["Sample"]] <- CNV_Top_Sample.set
     return(CNV_Top.lt)
   }
-  CNV_Top.lt <- ClassifyCNV(CNV.df)
+  
+  # Total
+  CNV_Top.lt <- ClassifyCNV(CNV.df,CNVmode="Total")
   CNV_Top.df <- CNV.df[CNV_Top.lt[["Gene"]],CNV_Top.lt[["Sample"]]]
+  
+  # Dup
+  CNV_Top_Dup.lt <- ClassifyCNV(CNV.df,CNVmode="Dup")
+  CNV_Top_Dup.df <- CNV.df[CNV_Top_Dup.lt[["Gene"]],CNV_Top_Dup.lt[["Sample"]]]
+  
+  # Del
+  CNV_Top_Del.lt <- ClassifyCNV(CNV.df,CNVmode="Del")
+  CNV_Top_Del.df <- CNV.df[CNV_Top_Del.lt[["Gene"]],CNV_Top_Del.lt[["Sample"]]]
+  
+  # TOP Dup+Del
+  CNV_Top_All.df <- rbind(CNV_Top_Dup.df,CNV_Top_Del.df)
   
   ## Old Version ## 
   # CNV.df["Sum",] <- apply(CNV.df, 2, function(a)sum(abs(a)))
@@ -100,7 +123,14 @@
   
   Heatmap(CNV_Top.df, name = "Num", col = col_fun, 
           show_column_names = F)
-
+  Heatmap(CNV_Top_Dup.df, name = "Num", col = col_fun, 
+          show_column_names = F)
+  Heatmap(CNV_Top_Del.df, name = "Num", col = col_fun, 
+          show_column_names = F)
+  Heatmap(CNV_Top_All.df, name = "Num", col = col_fun, 
+          show_column_names = F)
+  
+  
   
   ##### Group Samples by RNA expression #####  
     ##### Import genetic data file #####
