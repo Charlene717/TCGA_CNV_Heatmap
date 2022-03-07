@@ -76,7 +76,10 @@ GeneExp_Group <- function(GeneExp.df, Target_gene_name, Mode="Mean",SD=1) {
     
     ## Plot Mean and SD
     TGeneDen.p 
-    TGeneDen_SD.p <- ggPlot_vline(TGeneDen.p,data)
+    TGeneDen_SD.p <- ggPlot_vline(TGeneDen.p,data,                         
+                                  Line1 = Target_gene_Mean+Target_gene_SD,
+                                  Line2 = Target_gene_Mean,
+                                  Line3 = Target_gene_Mean-Target_gene_SD)
     TGeneDen_SD.p+ labs(title= Target_gene_name,
                         x = "Expression level", y = "Density")
     
@@ -141,6 +144,9 @@ GeneExp_Group <- function(GeneExp.df, Target_gene_name, Mode="Mean",SD=1) {
     GeneExp_Group.lt[["GeneExp_high.set"]] <- GeneExp_high.set
     GeneExp_Group.lt[["GeneExp_low.set"]] <- GeneExp_low.set
     GeneExp_Group.lt[["GeneExp_medium.set"]] <- GeneExp_medium.set
+    GeneExp_Group.lt[["Target_gene_Mean"]] <- Target_gene_Mean
+    GeneExp_Group.lt[["Target_gene_SD"]] <- Target_gene_SD
+    GeneExp_Group.lt[["Target_gene_Q"]] <- Target_gene_Q
     
   return(GeneExp_Group.lt)
 }
