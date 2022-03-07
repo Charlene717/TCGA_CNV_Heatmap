@@ -9,6 +9,7 @@
   library(tidyverse)
   library(ComplexHeatmap)
   library(circlize)
+  library(eoffice) # Export plot to PPT
   
 ##### Function setting #####
   source("FUN_Beautify_ggplot.R")
@@ -18,9 +19,6 @@
   ## File setting*
   RNAFileName <- "TCGA_PAAD_HiSeqV2"
   CNVFileName <-"TCGA_Gistic2_CopyNumber_Gistic2_all_data_by_genes"
-  
-  ## Import genetic data file
-  GeneExp.df <- read.table(RNARNAFileName, header=T, row.names = 1, sep="\t")
   
   
 ##### Conditions setting* ##### 
@@ -32,64 +30,95 @@
   dir.create(Result_Folder_Name)
   
 ##### Load and prepossess CNV data ##### 
-  TCGA_CNV.df <- read.delim(CNVFileName,
+  CNV.df <- read.delim(CNVFileName,
                       header = F,sep = "\t")
   
-  colnames(TCGA_CNV.df) <- TCGA_CNV.df[1,]
-  row.names(TCGA_CNV.df) <- TCGA_CNV.df[,1]
-  TCGA_CNV.df <- TCGA_CNV.df[-1,-1]
-  Colname <- colnames(TCGA_CNV.df)
-  Rowname <- row.names(TCGA_CNV.df)
+  colnames(CNV.df) <- CNV.df[1,]
+  row.names(CNV.df) <- CNV.df[,1]
+  CNV.df <- CNV.df[-1,-1]
+  Colname <- colnames(CNV.df)
+  Rowname <- row.names(CNV.df)
   
-  TCGA_CNV.df <- lapply(TCGA_CNV.df,as.numeric) %>% as.data.frame()
-  colnames(TCGA_CNV.df) <- Colname
-  row.names(TCGA_CNV.df) <- Rowname
+  CNV.df <- lapply(CNV.df,as.numeric) %>% as.data.frame()
+  colnames(CNV.df) <- Colname
+  row.names(CNV.df) <- Rowname
 
-##### Summaries the CNV data #####       
-  TCGA_CNV.df["Sum",] <- apply(TCGA_CNV.df, 2, function(a)sum(abs(a)))
-  TCGA_CNV.df[,"Sum"] <- apply(TCGA_CNV.df, 1, function(a)sum(abs(a)))
-  TCGA_CNV_Top.df <- TCGA_CNV.df %>% arrange(desc(Sum)) 
-  TCGA_CNV_Top.df <- TCGA_CNV_Top.df[2:51,1:(ncol(TCGA_CNV_Top.df)-1)]
+  rm(Colname,Rowname)
+##### Classify the CNV data #####       
+  ClassifyCNV <- function(CNV.df, CNVmode="Total", 
+                          TopNGene = 50,TopNSample = ncol(CNV.df)) { 
+    # mode = c("Total","Dup","Del")
+    if(CNVmode=="Total"){
+      CNV_Sum.df <- CNV.df
+    }
+    
+    CNV_Sum.df["Sum",] <- apply(CNV_Sum.df, 2, function(a)sum(abs(a)))
+    CNV_Sum.df[,"Sum"] <- apply(CNV_Sum.df, 1, function(a)sum(abs(a)))
+    
+    CNV_Top.df <- CNV_Sum.df %>% arrange(desc(Sum)) 
+    
+    CNV_Top.df <- CNV_Top.df[,!colnames(CNV_Top.df)==c("Sum")]
+    CNV_Top.df <- CNV_Top.df[!row.names(CNV_Top.df)==c("Sum"),]
+    
+    CNV_Top.df <- CNV_Top.df[1:TopNGene,1:TopNSample]
+    
+    CNV_Top_Gene.set <- row.names(CNV_Top.df)
+    CNV_Top_Sample.set <- colnames(CNV_Top.df)
+    
+    CNV_Top.lt <- list()
+    CNV_Top.lt[["Gene"]] <- CNV_Top_Gene.set
+    CNV_Top.lt[["Sample"]] <- CNV_Top_Sample.set
+    return(CNV_Top.lt)
+  }
+  CNV_Top.lt <- ClassifyCNV(CNV.df)
+  CNV_Top.df <- CNV.df[CNV_Top.lt[["Gene"]],CNV_Top.lt[["Sample"]]]
+  
+  ## Old Version ## 
+  # CNV.df["Sum",] <- apply(CNV.df, 2, function(a)sum(abs(a)))
+  # CNV.df[,"Sum"] <- apply(CNV.df, 1, function(a)sum(abs(a)))
+  # CNV_Top.df <- CNV.df %>% arrange(desc(Sum)) 
+  # CNV_Top.df <- CNV_Top.df[2:51,1:(ncol(CNV_Top.df)-1)]
   
   # ## Check ##  
-  # SumTestC1 <- sum(abs(TCGA_CNV.df[,1]))
-  # SumTestR1 <- sum(abs(TCGA_CNV.df[1,]))
-  # SumTestC.All <-apply(TCGA_CNV.df, 2, function(a)sum(abs(a)))
-  # SumTestR.All <-apply(TCGA_CNV.df, 1, function(a)sum(abs(a)))
+  # SumTestC1 <- sum(abs(CNV.df[,1]))
+  # SumTestR1 <- sum(abs(CNV.df[1,]))
+  # SumTestC.All <-apply(CNV.df, 2, function(a)sum(abs(a)))
+  # SumTestR.All <-apply(CNV.df, 1, function(a)sum(abs(a)))
   
 ##### Primary Heatmap #####  
-  Heatmap(TCGA_CNV_Top.df, use_raster=T)
-  
+  Heatmap(CNV_Top.df, use_raster=T)
+
   library(circlize)
-  col_fun = colorRamp2(c(min(TCGA_CNV_Top.df), 0, max(TCGA_CNV_Top.df)), 
+  col_fun = colorRamp2(c(min(CNV_Top.df), 0, max(CNV_Top.df)), 
                        c( "#2776e6","white", "#db3784"))
-  col_fun = colorRamp2(c(min(TCGA_CNV_Top.df), 0, max(TCGA_CNV_Top.df)), 
+  col_fun = colorRamp2(c(min(CNV_Top.df), 0, max(CNV_Top.df)), 
                        c( "#2776e6","#0c1829", "#db3784"))
-  col_fun = colorRamp2(c(min(TCGA_CNV_Top.df), 0, max(TCGA_CNV_Top.df)), 
+  col_fun = colorRamp2(c(min(CNV_Top.df), 0, max(CNV_Top.df)), 
                        c( "#02994d","#0c1829", "#e81c4b"))
  
   col_fun(seq(-3, 3))
   
-  Heatmap(TCGA_CNV_Top.df, name = "Num", col = col_fun, 
+  Heatmap(CNV_Top.df, name = "Num", col = col_fun, 
           show_column_names = F)
+
   
   ##### Group Samples by RNA expression #####  
-
+    ##### Import genetic data file #####
+      GeneExp.df <- read.table(RNAFileName, 
+                               header=T, row.names = 1, sep="\t")
+  
     ##### Extract Target gene and Statistics ####
       # Extract data with Target_gene_name
       Target_gene_Mean <- GeneExp.df[Target_gene_name,] %>%
-        as.numeric() %>% 
-        mean()
+                          as.numeric() %>% mean()
       
       #rowMeans(data.matrix(Target_gene))
       Target_gene_SD <- GeneExp.df[Target_gene_name,] %>%
-        as.numeric() %>% 
-        sd()
+                        as.numeric() %>% sd()
       
       # Quartile
       Target_gene_Q <- GeneExp.df[Target_gene_name,] %>%
-        as.numeric() %>% 
-        quantile()
+                       as.numeric() %>% quantile()
 
     ##### Group the expression matrix according to the expression level of Target gene ####  
       if(Mode_Group$Mode=="Mean"){
