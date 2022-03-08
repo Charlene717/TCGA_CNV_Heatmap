@@ -83,17 +83,29 @@
                        c( "#02994d","#0c1829", "#e81c4b"))
   col_fun(seq(-3, 3))
   
-  Heatmap(CNV_Top_Sum.lt[["CNV_Top.df"]], name = "Num", col = col_fun, 
-          show_column_names = F, show_row_names = F)
-  Heatmap(CNV_Top_Sum.lt[["CNV_Top_Dup.df"]], name = "Num", col = col_fun, 
-          show_column_names = F, show_row_names = F)
-  Heatmap(CNV_Top_Sum.lt[["CNV_Top_Del.df"]], name = "Num", col = col_fun, 
-          show_column_names = F, show_row_names = F)
+  pdf(
+    file = paste0(Result_Folder_Name,"/CNV_Heatmap_Overal_",Target_gene_name,
+                  "_Top",HeatmapTopGene,".pdf"),
+    width = 10,  height = 8
+  )
   
-  Heatmap(CNV_Top_Sum.lt[["CNV_Top_2D.df"]], name = "Num", col = col_fun, 
-          show_column_names = F, show_row_names = F)
-  
-  
+    Heatmap(CNV_Top_Sum.lt[["CNV_Top.df"]], name = "Num", col = col_fun, 
+            show_column_names = F, show_row_names = F) -> Heatmap.p
+    
+    draw(Heatmap.p, column_title = paste0("Overal CNV heatmaps (TOP",HeatmapTopGene,")"),
+         column_title_gp = gpar(fontsize = 16)) #%>% print()
+    rm(Heatmap.p)
+    # Heatmap(CNV_Top_Sum.lt[["CNV_Top_Dup.df"]], name = "Num", col = col_fun, 
+    #         show_column_names = F, show_row_names = F)
+    # Heatmap(CNV_Top_Sum.lt[["CNV_Top_Del.df"]], name = "Num", col = col_fun, 
+    #         show_column_names = F, show_row_names = F)
+    
+    Heatmap(CNV_Top_Sum.lt[["CNV_Top_2D.df"]], name = "Num", col = col_fun, 
+            show_column_names = F, show_row_names = F) -> Heatmap.p
+    draw(Heatmap.p, column_title = paste0("Overal CNV heatmaps (±TOP",HeatmapTopGene,")"),
+         column_title_gp = gpar(fontsize = 16)) #%>% print()
+    rm(Heatmap.p)
+  dev.off()
   
 ##### Group Samples by RNA expression #####  
   ##### Import genetic data file #####
@@ -158,23 +170,49 @@
       # CNV_TGS_Top.df
       column_ha = HeatmapAnnotation(TarGene = Anno_CNV.df$TarGene,
                   col = list(TarGene = c("High" = "#e04f70", "Low" = "#4474db" ,"Med" ="#adadad")))
-      Heatmap(CNV_TGS_Top_Sum.lt[["CNV_TGS_Top.df"]] , name = "Num", col = col_fun, 
-              show_column_names = F,show_row_names = F, 
-              cluster_columns = T, top_annotation = column_ha)
-      Heatmap(CNV_TGS_Top_Sum.lt[["CNV_TGS_Top.df"]] , name = "Num", col = col_fun, 
-              show_column_names = F,show_row_names = F, 
-              cluster_columns = F, top_annotation = column_ha)
-      
+        ## Modify the label name
+        #column_ha@anno_list[["TarGene"]]@name <- Target_gene_name
+        column_ha@anno_list[["TarGene"]]@label <- Target_gene_name
+        #column_ha@anno_list[["TarGene"]]@name_param[["label"]] <- Target_gene_name
+        column_ha@anno_list[["TarGene"]]@color_mapping@name <- Target_gene_name
+       
+      pdf(
+        file = paste0(Result_Folder_Name,"/CNV_Heatmap_TGS_",Target_gene_name,
+                      "_Top",HeatmapTopGene,".pdf"),
+        width = 10,  height = 8
+      )   
+      # CNV_TGS_Top.df
+        Heatmap(CNV_TGS_Top_Sum.lt[["CNV_TGS_Top.df"]] , name = "Num", col = col_fun, 
+                show_column_names = F,show_row_names = F, 
+                cluster_columns = T, top_annotation = column_ha)-> Heatmap.p
+        draw(Heatmap.p, column_title = paste0("TGS CNV heatmaps (TOP",HeatmapTopGene,")"),
+             column_title_gp = gpar(fontsize = 16)) #%>% print()
+        rm(Heatmap.p)
+        
+        Heatmap(CNV_TGS_Top_Sum.lt[["CNV_TGS_Top.df"]] , name = "Num", col = col_fun, 
+                show_column_names = F,show_row_names = F, 
+                cluster_columns = F, top_annotation = column_ha)-> Heatmap.p
+        draw(Heatmap.p, column_title = paste0("TGS CNV heatmaps (TOP",HeatmapTopGene,")"),
+             column_title_gp = gpar(fontsize = 16)) #%>% print()
+        rm(Heatmap.p)
+        
       # CNV_TGS_Top_2D.df
-      Heatmap(CNV_TGS_Top_Sum.lt[["CNV_TGS_Top_2D.df"]] , name = "Num", col = col_fun, 
-              show_column_names = F,show_row_names = F, 
-              cluster_columns = T, top_annotation = column_ha)
-      Heatmap(CNV_TGS_Top_Sum.lt[["CNV_TGS_Top_2D.df"]] , name = "Num", col = col_fun, 
-              show_column_names = F,show_row_names = F, 
-              cluster_columns = F, top_annotation = column_ha)
-      
-      rm(column_ha)
-      
+        Heatmap(CNV_TGS_Top_Sum.lt[["CNV_TGS_Top_2D.df"]] , name = "Num", col = col_fun, 
+                show_column_names = F,show_row_names = F, 
+                cluster_columns = T, top_annotation = column_ha)-> Heatmap.p
+        draw(Heatmap.p, column_title = paste0("TGS CNV heatmaps (±TOP",HeatmapTopGene,")"),
+             column_title_gp = gpar(fontsize = 16)) #%>% print()
+        rm(Heatmap.p)
+        
+        Heatmap(CNV_TGS_Top_Sum.lt[["CNV_TGS_Top_2D.df"]] , name = "Num", col = col_fun, 
+                show_column_names = F,show_row_names = F, 
+                cluster_columns = F, top_annotation = column_ha)-> Heatmap.p
+        draw(Heatmap.p, column_title = paste0("TGS CNV heatmaps (±TOP",HeatmapTopGene,")"),
+             column_title_gp = gpar(fontsize = 16)) #%>% print()
+        rm(Heatmap.p)
+        
+        rm(column_ha)
+      dev.off()
     ##### TGH #####
       ##### TGS #####
       # TarGeGroup.set <- c(GeneExp_Group.lt[["GeneExp_high.set"]], GeneExp_Group.lt[["GeneExp_low.set"]], 
@@ -236,25 +274,33 @@
       ##### CNV Heatmap #####
       ## Ref: https://bioconductor.riken.jp/packages/3.4/bioc/vignettes/ComplexHeatmap/inst/doc/s9.examples.html
       
-      # CNV_TGH_Top.df
-      column_ha = HeatmapAnnotation(TarGene = Anno_CNV.df$TarGene,
-                                    col = list(TarGene = c("High" = "#e04f70", "Low" = "#4474db" ,"Med" ="#adadad")))
-      Heatmap(CNV_TGH_Top_Sum.lt[["CNV_Top.df"]] , name = "Num", col = col_fun, 
-              show_column_names = F,show_row_names = F, 
-              cluster_columns = T, top_annotation = column_ha)
-      Heatmap(CNV_TGH_Top_Sum.lt[["CNV_Top.df"]] , name = "Num", col = col_fun, 
-              show_column_names = F,show_row_names = F, 
-              cluster_columns = F, top_annotation = column_ha)
-      
-      # CNV_TGH_Top_2D.df
-      Heatmap(CNV_TGH_Top_Sum.lt[["CNV_Top_2D.df"]] , name = "Num", col = col_fun, 
-              show_column_names = F,show_row_names = F, 
-              cluster_columns = T, top_annotation = column_ha)
-      Heatmap(CNV_TGH_Top_Sum.lt[["CNV_Top_2D.df"]] , name = "Num", col = col_fun, 
-              show_column_names = F,show_row_names = F, 
-              cluster_columns = F, top_annotation = column_ha)
-      
-      rm(column_ha)
+      pdf(
+        file = paste0(Result_Folder_Name,"/CNV_Heatmap_TGH_",Target_gene_name,
+                      "_Top",HeatmapTopGene,".pdf"),
+        width = 10,  height = 8
+      )   
+        
+        # CNV_TGH_Top.df
+        column_ha = HeatmapAnnotation(TarGene = Anno_CNV.df$TarGene,
+                                      col = list(TarGene = c("High" = "#e04f70", "Low" = "#4474db" ,"Med" ="#adadad")))
+        Heatmap(CNV_TGH_Top_Sum.lt[["CNV_Top.df"]] , name = "Num", col = col_fun, 
+                show_column_names = F,show_row_names = F, 
+                cluster_columns = T, top_annotation = column_ha)
+        Heatmap(CNV_TGH_Top_Sum.lt[["CNV_Top.df"]] , name = "Num", col = col_fun, 
+                show_column_names = F,show_row_names = F, 
+                cluster_columns = F, top_annotation = column_ha)
+        
+        # CNV_TGH_Top_2D.df
+        Heatmap(CNV_TGH_Top_Sum.lt[["CNV_Top_2D.df"]] , name = "Num", col = col_fun, 
+                show_column_names = F,show_row_names = F, 
+                cluster_columns = T, top_annotation = column_ha)
+        Heatmap(CNV_TGH_Top_Sum.lt[["CNV_Top_2D.df"]] , name = "Num", col = col_fun, 
+                show_column_names = F,show_row_names = F, 
+                cluster_columns = F, top_annotation = column_ha)
+        
+        rm(column_ha)
+        
+      dev.off()
       
        
     
