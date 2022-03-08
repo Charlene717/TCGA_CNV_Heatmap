@@ -116,13 +116,13 @@ GeneExp_Group <- function(GeneExp.df, Target_gene_name, Mode="Mean",SD=1) {
       width = 10,  height = 8
     )
     
-    TGeneDen_Q.p  %>% BeautifyggPlot(LegPos = c(0.9, 0.8),AxisTitleSize=1.7) + 
+    TGeneDen_Q.p  %>% BeautifyggPlot(LegPos = c(0.9, 0.8),AxisTitleSize=1.7) %>% print() + 
       labs(title= Target_gene_name,
            x ="Expression level", y = "Density")
-    TGeneDen_SD.p  %>% BeautifyggPlot(LegPos = c(0.9, 0.8),AxisTitleSize=1.7) + 
+    TGeneDen_SD.p  %>% BeautifyggPlot(LegPos = c(0.9, 0.8),AxisTitleSize=1.7) %>% print()+ 
       labs(title= Target_gene_name,
            x ="Expression level", y = "Density")
-    TGeneDen_SD_Q.p  %>% BeautifyggPlot(LegPos = c(0.9, 0.8),AxisTitleSize=1.7) + 
+    TGeneDen_SD_Q.p  %>% BeautifyggPlot(LegPos = c(0.9, 0.8),AxisTitleSize=1.7) %>% print()+ 
       labs(title= Target_gene_name,
            x ="Expression level", y = "Density")
     
