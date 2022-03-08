@@ -35,7 +35,7 @@ GeneExp_Group <- function(GeneExp.df, Target_gene_name, Mode="Mean",SD=1) {
         Len <- length(c(GeneExp_high.set,GeneExp_low.set))
         Mean <- min(abs(GeneExp_TarGene.df[1,]-Target_gene_Mean)) 
         Mean.loc <- which(GeneExp_TarGene.df[1,]-Target_gene_Mean == Mean)
-        GeneExp_medium.set <- colnames(GeneExp_TarGene.df)[(Mean.loc-Len/2):(Mean.loc+Len/2)]
+        GeneExp_medium.set <- colnames(GeneExp_TarGene.df)[(Mean.loc-Len/4):(Mean.loc+Len/4)]
         rm(Len,Mean,Mean.loc)
         
       }else{
@@ -51,7 +51,7 @@ GeneExp_Group <- function(GeneExp.df, Target_gene_name, Mode="Mean",SD=1) {
         Len <- length(c(GeneExp_high.set,GeneExp_low.set))
         Q2 <- min(abs(GeneExp_TarGene.df[1,]-Target_gene_Q[2])) 
         Q2.loc <- which(GeneExp_TarGene.df[1,]-Target_gene_Q[2] == Q2)
-        GeneExp_medium.set <- colnames(GeneExp_TarGene.df)[(Q2.loc-Len/2):(Q2.loc+Len/2)]
+        GeneExp_medium.set <- colnames(GeneExp_TarGene.df)[(Q2.loc-Len/4):(Q2.loc+Len/4)]
         rm(Len,Q2,Q2.loc)
       }
       
