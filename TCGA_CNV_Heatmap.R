@@ -21,13 +21,7 @@
   ## File setting*
   RNAFileName <- "TCGA_PAAD_HiSeqV2"
   CNVFileName <- "TCGA_Gistic2_CopyNumber_Gistic2_all_data_by_genes"
-  
-  
 
-##### Current path and new folder setting* ##### 
-  Result_Folder_Name <- paste0(Target_gene_name,"_",Sys.Date()) ## Generate output folder automatically
-  dir.create(Result_Folder_Name)
-  
 ##### Load and prepossess CNV data ##### 
   CNV.df <- read.delim(CNVFileName,
                       header = F,sep = "\t")
@@ -47,7 +41,11 @@
 ##### Conditions setting* ##### 
   Target_gene_name <- "TOP2A"
   Mode_Group <- list(Mode="Mean",SD=1) # Mode_Group <- list(Mode="Quartile",Q2="Only")
-  HeatmapTopGene =  nrow(CNV.df)
+  HeatmapTopGene =  1000
+  
+##### Current path and new folder setting* ##### 
+  Result_Folder_Name <- paste0(Target_gene_name,"_",Sys.Date()) ## Generate output folder automatically
+  dir.create(Result_Folder_Name)
   
 ##### Classify the TOP CNV data #####       
   CNV_Top_Sum.lt <- list()
