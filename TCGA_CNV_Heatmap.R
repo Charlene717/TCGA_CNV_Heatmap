@@ -94,6 +94,9 @@
   
   col_fun = colorRamp2(c(min(CNV.df), 0, max(CNV.df)), 
                        c( "#02994d","#0c1829", "#e81c4b"))
+  col_fun = colorRamp2(c(-2, 0, 2), 
+                       c( "#02994d","#0c1829", "#e81c4b"))
+  
   col_fun(seq(-3, 3))
   
   pdf(
