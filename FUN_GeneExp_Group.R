@@ -80,8 +80,9 @@ GeneExp_Group <- function(GeneExp.df, Target_gene_name, Mode="Mean",SD=1) {
                                   Line1 = Target_gene_Mean+Target_gene_SD,
                                   Line2 = Target_gene_Mean,
                                   Line3 = Target_gene_Mean-Target_gene_SD)
-    TGeneDen_SD.p+ labs(title= Target_gene_name,
-                        x = "Expression level", y = "Density")
+    TGeneDen_SD.p  %>% BeautifyggPlot(LegPos = c(0.9, 0.8),AxisTitleSize=1.7) + 
+      labs(title= Target_gene_name, x ="Expression level", y = "Density") -> TGeneDen_SD.p 
+    
     
     ## Plot Quartiles 
     TGeneDen_Q.p <- ggPlot_vline(TGeneDen.p,data,
@@ -92,9 +93,9 @@ GeneExp_Group <- function(GeneExp.df, Target_gene_name, Mode="Mean",SD=1) {
                                  Text.set = c("Q1","Q2","Q3"),
                                  rectP = list(xWidth=0.015, yminP=0.45, ymaxP=0.55,alpha=0.8) 
     )
+    TGeneDen_Q.p  %>% BeautifyggPlot(LegPos = c(0.9, 0.8),AxisTitleSize=1.7) + 
+      labs(title= Target_gene_name,x ="Expression level", y = "Density") -> TGeneDen_Q.p
     
-    TGeneDen_Q.p + labs(title= Target_gene_name,
-                        x = "Expression level", y = "Density")
     
     ## Plot Quartiles & Mean and SD
     TGeneDen_SD_Q.p <- ggPlot_vline(TGeneDen_SD.p,data,
@@ -107,8 +108,8 @@ GeneExp_Group <- function(GeneExp.df, Target_gene_name, Mode="Mean",SD=1) {
                                     rectP = list(xWidth=0.015, yminP=0.3, ymaxP=0.4,alpha=0.8) 
     )
     
-    TGeneDen_SD_Q.p + labs(title= Target_gene_name,
-                           x = "Expression level", y = "Density")
+    TGeneDen_SD_Q.p  %>% BeautifyggPlot(LegPos = c(0.9, 0.8),AxisTitleSize=1.7) +
+                        labs(title= Target_gene_name, x ="Expression level", y = "Density") -> TGeneDen_SD_Q.p
     
     
     pdf(
@@ -116,15 +117,9 @@ GeneExp_Group <- function(GeneExp.df, Target_gene_name, Mode="Mean",SD=1) {
       width = 10,  height = 8
     )
     
-    TGeneDen_Q.p  %>% BeautifyggPlot(LegPos = c(0.9, 0.8),AxisTitleSize=1.7) %>% print() + 
-      labs(title= Target_gene_name,
-           x ="Expression level", y = "Density")
-    TGeneDen_SD.p  %>% BeautifyggPlot(LegPos = c(0.9, 0.8),AxisTitleSize=1.7) %>% print()+ 
-      labs(title= Target_gene_name,
-           x ="Expression level", y = "Density")
-    TGeneDen_SD_Q.p  %>% BeautifyggPlot(LegPos = c(0.9, 0.8),AxisTitleSize=1.7) %>% print()+ 
-      labs(title= Target_gene_name,
-           x ="Expression level", y = "Density")
+      print(TGeneDen_Q.p)
+      print(TGeneDen_SD.p)
+      print(TGeneDen_SD_Q.p)
     
     dev.off()
     
