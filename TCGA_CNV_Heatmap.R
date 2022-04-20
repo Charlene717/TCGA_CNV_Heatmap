@@ -26,15 +26,14 @@
   CNV.df <- read.delim(CNVFileName,
                       header = F,sep = "\t")
   
-  colnames(CNV.df) <- CNV.df[1,]
-  row.names(CNV.df) <- CNV.df[,1]
+
+  Colname <- CNV.df[1,]
+  Rowname <- CNV.df[,1]
   CNV.df <- CNV.df[-1,-1]
-  Colname <- colnames(CNV.df)
-  Rowname <- row.names(CNV.df)
   
   CNV.df <- lapply(CNV.df,as.numeric) %>% as.data.frame()
-  colnames(CNV.df) <- Colname
-  row.names(CNV.df) <- Rowname
+  colnames(CNV.df) <- Colname[-1]
+  row.names(CNV.df) <- Rowname[-1]
 
   rm(Colname,Rowname)
   
@@ -331,3 +330,4 @@
       
       rm(CNV_TGH.df) 
     
+      
