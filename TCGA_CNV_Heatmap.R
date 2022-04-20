@@ -1,5 +1,9 @@
 ## Ref: https://jokergoo.github.io/ComplexHeatmap-reference/book/index.html
 
+##### To Do List ######
+  # - [ ] Find nearby genes
+  # - [ ] Extract the gene group with the greatest difference in the comparison of the groups classified by gene expression
+
 ##### Presetting ######
   rm(list = ls()) # Clean variable
   memory.limit(150000)
