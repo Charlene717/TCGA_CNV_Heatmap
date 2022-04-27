@@ -2,7 +2,8 @@
 
 ##### To Do List ######
   # - [ ] Consider Phenotype (Normal,Primary Tumor)
-  # - [ ] Design method of clustering (Gene A high expression group and low expression group)
+  # - [ ] Design method of classification (Gene A high/low/Medium expression group)
+  # - [ ] Choose(Filter) the sample type
   # - [ ] Extract the gene list by the greatest difference in the comparison of the groups classified by gene expression
   # - [ ] Find nearby genes
   # - [ ] Gene name conversion
