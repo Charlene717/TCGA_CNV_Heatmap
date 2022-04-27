@@ -1,5 +1,6 @@
-GeneExp_Group <- function(GeneExp.df, Target_gene_name, Mode="Mean",SD=1) { 
-  
+GeneExp_Group <- function(GeneExp.df, Target_gene_name, Mode="Mean",SD=1,Result_Folder_Name=Result_Folder_Name) { 
+    Target_gene_name_F <- Target_gene_name
+    Target_gene_name <- row.names(GeneExp.df)[grepl(Target_gene_name, row.names(GeneExp.df))]
     ##### Extract Target gene and Statistics ####
     # Extract data with Target_gene_name
       Target_gene_Mean <- GeneExp.df[Target_gene_name,] %>%
@@ -34,7 +35,7 @@ GeneExp_Group <- function(GeneExp.df, Target_gene_name, Mode="Mean",SD=1) {
         
         Len <- length(c(GeneExp_high.set,GeneExp_low.set))
         Mean <- min(abs(GeneExp_TarGene.df[1,]-Target_gene_Mean)) 
-        Mean.loc <- which(GeneExp_TarGene.df[1,]-Target_gene_Mean == Mean)
+        Mean.loc <- which(abs(GeneExp_TarGene.df[1,]-Target_gene_Mean) == Mean)
         GeneExp_medium.set <- colnames(GeneExp_TarGene.df)[(Mean.loc-Len/4):(Mean.loc+Len/4)]
         rm(Len,Mean,Mean.loc)
         
@@ -113,7 +114,7 @@ GeneExp_Group <- function(GeneExp.df, Target_gene_name, Mode="Mean",SD=1) {
     
     
     pdf(
-      file = paste0(Result_Folder_Name,"/",RNAFileName,"_",Target_gene_name,"_DensityPlot.pdf"),
+      file = paste0(Result_Folder_Name,"/",RNAFileName,"_",Target_gene_name_F,"_DensityPlot.pdf"),
       width = 10,  height = 8
     )
     
@@ -129,7 +130,7 @@ GeneExp_Group <- function(GeneExp.df, Target_gene_name, Mode="Mean",SD=1) {
       labs(title= Target_gene_name,
            x ="Expression level", y = "Density") -> TGeneDen_SD_Q2.p
     
-    topptx(TGeneDen_SD_Q2.p,paste0(Result_Folder_Name,"/",RNAFileName,"_",Target_gene_name,"_DensityPlot.pptx"))
+    topptx(TGeneDen_SD_Q2.p,paste0(Result_Folder_Name,"/",RNAFileName,"_",Target_gene_name_F,"_DensityPlot.pptx"))
     
     rm(TGeneDen_SD_Q2.p)
     rm(TGeneDen_Q.p, TGeneDen_SD_Q.p, TGeneDen_SD.p, TGeneDen.p)
