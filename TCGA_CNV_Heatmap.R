@@ -1,8 +1,11 @@
 ## Ref: https://jokergoo.github.io/ComplexHeatmap-reference/book/index.html
 
 ##### To Do List ######
+  # - [ ] Consider Phenotype (Normal,Primary Tumor)
+  # - [ ] Design method of clustering (Gene A high expression group and low expression group)
+  # - [ ] Extract the gene list by the greatest difference in the comparison of the groups classified by gene expression
   # - [ ] Find nearby genes
-  # - [ ] Extract the gene group with the greatest difference in the comparison of the groups classified by gene expression
+  # - [ ] Gene name conversion
 
 ##### Presetting ######
   rm(list = ls()) # Clean variable
@@ -24,9 +27,30 @@
 ##### Files setting and import * ##### 
   ## File setting*
   RNAFileName <- "RNA_TCGA-PAAD" # RNAFileName <- "TCGA_PAAD_HiSeqV2"
-
   CNVFileName <- "CNV_TCGA-PAAD.gistic.tsv"
   PhenoFileName <- "TCGA-PAAD.GDC_phenotype.tsv"
+
+##### Conditions setting* ##### 
+  Target_gene_name <- "ENSG00000131747" # ENSG00000131747 TOP2A
+  Mode_Group <- list(Mode="Mean",SD=1) # Mode_Group <- list(Mode="Quartile",Q2="Only")
+  HeatmapTopGene =  1000
+  
+  # Figure note
+  if(Mode_Group[["Mode"]]=="Mean"){
+    Note = paste0("Mean_SD",Mode_Group[["SD"]])
+  }else{
+    Note = paste0("Quarter")
+  }
+  
+  # IntGene.set <- c("TOP2A","NSUN2","MB21D1","TP53","PTK2",
+  #                  "PIK3CA","EGFR","MYC","KRAS","BRAF") ## MB21D1= CGAS
+  IntGene.set <- c("ENSG00000131747","ENSG00000037474","ENSG00000164430","ENSG00000141510","ENSG00000169398",
+                   "ENSG00000121879","ENSG00000146648","ENSG00000136997","ENSG00000133703","ENSG00000157764") ## MB21D1= CGAS
+  
+##### Current path and new folder setting* ##### 
+  Result_Folder_Name <- paste0(Target_gene_name,"_",Sys.Date()) ## Generate output folder automatically
+  dir.create(Result_Folder_Name)
+  
   
 ##### Load and prepossess CNV data ##### 
   CNV.df <- read.delim(CNVFileName,
@@ -41,31 +65,6 @@
   row.names(CNV.df) <- Rowname[-1]
 
   rm(Colname,Rowname)
-  
-##### Conditions setting* ##### 
-  Target_gene_name <- "TOP2A" # ENSG00000131747
-  Target_gene_name <- "ENSG00000131747"
-  Mode_Group <- list(Mode="Mean",SD=1) # Mode_Group <- list(Mode="Quartile",Q2="Only")
-  HeatmapTopGene =  1000
-  
-  # Figure note
-  if(Mode_Group[["Mode"]]=="Mean"){
-    Note = paste0("Mean_SD",Mode_Group[["SD"]])
-  }else{
-    Note = paste0("Quarter")
-  }
-  
-  IntGene.set <- c("TOP2A","NSUN2","MB21D1","TP53","PTK2",
-                   "PIK3CA","EGFR","MYC","KRAS","BRAF") ## MB21D1= CGAS
-  IntGene.set <- c("ENSG00000131747","ENSG00000037474","ENSG00000164430","ENSG00000141510","ENSG00000169398",
-                   "ENSG00000121879","ENSG00000146648","ENSG00000136997","ENSG00000133703","ENSG00000157764") ## MB21D1= CGAS
-  
-    
-    
-    
-##### Current path and new folder setting* ##### 
-  Result_Folder_Name <- paste0(Target_gene_name,"_",Sys.Date()) ## Generate output folder automatically
-  dir.create(Result_Folder_Name)
   
 ##### Classify the TOP CNV data #####       
   CNV_Top_Sum.lt <- list()
@@ -126,7 +125,7 @@
   dev.off()
   
 ##### Group Samples by RNA expression #####  
-  ##### Import genetic data file #####
+  ##### Import RNA expression data #####
     GeneExp.df <- read.table(RNAFileName, 
                              header=T, row.names = 1, sep="\t")
     GeneExp_colname <- read.table(RNAFileName, 
@@ -358,9 +357,9 @@
       Pheno_KLC.df <- dplyr::left_join(Pheno_KLC.df,GeneExp_T.df) %>% na.omit()
        
       # Bar  
-      p <- ggplot(data = Pheno_KLC.df, aes(x = submitter_id.samples, y = ENSG00000131747.13, fill = sample_type.samples)) +
+      Bar.p <- ggplot(data = Pheno_KLC.df, aes(x = submitter_id.samples, y = ENSG00000131747.13, fill = sample_type.samples)) +
         geom_bar(stat = "identity")
-      p
+      Bar.p
       
       
       ##### Density plot #####
@@ -369,21 +368,10 @@
       mu <- ddply(Pheno_KLC.df, "sample_type.samples", summarise, grp.mean=mean(ENSG00000131747.13))
       head(mu)
       
-      # 更改密度图线的颜色
       ggplot(Pheno_KLC.df, aes(x=ENSG00000131747.13, color=sample_type.samples)) +
         geom_density()
-      # # 添加平均数线
-      # p<- ggplot(Pheno_KLC.df, aes(x=ENSG00000131747.13, color=sample_type.samples)) +
-      #    geom_density()+
-      #   geom_vline(data=mu, aes(xintercept=grp.mean, color=sample_type.samples),
-      #              linetype="dashed")
-      # p      # p<- ggplot(Pheno_KLC.df, aes(x=ENSG00000131747.13, color=sample_type.samples)) +
-      #    geom_density()+
-      #   geom_vline(data=mu, aes(xintercept=grp.mean, color=sample_type.samples),
-      #              linetype="dashed")
-      # p
-      # 
-      
+
+      # Add vline of the average
       TGeneDen.p <- ggplot(Pheno_KLC.df,aes(ENSG00000131747.13,fill=sample_type.samples, color=sample_type.samples)) + 
         xlab("Expression level") + 
         geom_density(alpha = 0.6, fill = "lightgray") + 
@@ -394,7 +382,9 @@
         labs(title= Target_gene_name,
              x ="Expression level", y = "Density")
       
+      ## Count the sample number of different phenotype
       nrow(Pheno_KLC.df[Pheno_KLC.df[,"sample_type.samples"] %in% "Primary Tumor",])
       nrow(Pheno_KLC.df[Pheno_KLC.df[,"sample_type.samples"] %in% "Solid Tissue Normal",])
       nrow(Pheno_KLC.df[Pheno_KLC.df[,"sample_type.samples"] %in% "Metastatic",])
+      
       
