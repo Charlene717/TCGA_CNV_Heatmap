@@ -17,7 +17,9 @@ TOP_CNV <- function(CNV.df, CNVmode="Total",
     CNV_Sum.df[,"Sum"] <- apply(CNV_Sum.df, 1, function(a)sum(abs(a)))
   }
   
-  CNV_Top.df <- CNV_Sum.df %>% arrange(desc(Sum)) 
+  CNV_Top.df <- tibble::rownames_to_column(CNV_Sum.df) %>% arrange(desc(Sum)) 
+  row.names(CNV_Top.df) <- CNV_Top.df[,1]
+  CNV_Top.df <- CNV_Top.df[,-1]
   
   CNV_Top.df <- CNV_Top.df[,!colnames(CNV_Top.df)==c("Sum")]
   CNV_Top.df <- CNV_Top.df[!row.names(CNV_Top.df)==c("Sum"),]
