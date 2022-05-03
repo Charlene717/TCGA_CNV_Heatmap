@@ -51,7 +51,7 @@
                    "ENSG00000121879","ENSG00000146648","ENSG00000136997","ENSG00000133703","ENSG00000157764") ## MB21D1= CGAS
   
 ##### Current path and new folder setting* ##### 
-  Result_Folder_Name <- paste0(Target_gene_name,"_",Sys.Date(),"_2") ## Generate output folder automatically
+  Result_Folder_Name <- paste0(Target_gene_name,"_",Sys.Date(),"_3") ## Generate output folder automatically
   dir.create(Result_Folder_Name)
   
   
@@ -265,11 +265,12 @@
           }
           
         }
-        rm(i,Gene)
+        
         IntGene.set <- IntGene.set2 %>% unlist()
         IntGene.set <- na.omit(IntGene.set)
+        rm(i,Gene,IntGene.set2)
         
-        row.names(GeneExp.df)[grepl(IntGene.set, row.names(GeneExp.df))]
+        #row.names(GeneExp.df)[grepl(IntGene.set, row.names(GeneExp.df))]
         
         pdf(
           file = paste0(Result_Folder_Name,"/CNV_Heatmap_IntGene_",Target_gene_name,".pdf"),
@@ -397,4 +398,63 @@
       nrow(Pheno_KLC.df[Pheno_KLC.df[,"sample_type.samples"] %in% "Solid Tissue Normal",])
       nrow(Pheno_KLC.df[Pheno_KLC.df[,"sample_type.samples"] %in% "Metastatic",])
       
+      #### GroupV1 ####
+        Pheno_KLC.df$GroupV1 <- ""
+        for (i in 1:nrow(Pheno_KLC.df)) {
+          if(Pheno_KLC.df$submitter_id.samples[i] %in% GeneExp_Group.lt[["GeneExp_high.set"]]){
+            Pheno_KLC.df$GroupV1[i] <- "High"
+          }else if(Pheno_KLC.df$submitter_id.samples[i] %in% GeneExp_Group.lt[["GeneExp_low.set"]]){
+            Pheno_KLC.df$GroupV1[i] <- "Low"
+          }else if(Pheno_KLC.df$submitter_id.samples[i] %in% GeneExp_Group.lt[["GeneExp_medium.set"]]){
+            Pheno_KLC.df$GroupV1[i] <- "Medium"
+          }else{
+            Pheno_KLC.df$GroupV1[i] <- "Other"
+          }
+        }
+  
+        #Check
+        sum(Pheno_KLC.df$GroupV1=="High")
+        sum(Pheno_KLC.df$GroupV1=="Low")
+        sum(Pheno_KLC.df$GroupV1=="Medium")
+      
+      #### GroupV2 ####
+        Pheno_KLC.df$GroupV2 <- ""
+        Mean = GeneExp_Group.lt[["Target_gene_Mean"]]
+        for (i in 1:nrow(Pheno_KLC.df)) {
+          if(Pheno_KLC.df$ENSG00000131747.13[i] >= Mean){
+            Pheno_KLC.df$GroupV2[i] <- "High"
+          }else{
+            Pheno_KLC.df$GroupV2[i] <- "Low"
+          }
+        }
+        
+        #Check
+        sum(Pheno_KLC.df$GroupV2=="High")
+        sum(Pheno_KLC.df$GroupV2=="Low")
+
+      
+      ## Xena TCGA Data
+      CNVFileName <- "TCGA_Gistic2_CopyNumber_Gistic2_all_data_by_genes"
+      
+      ## Load and prepossess CNV data ## 
+      CNV.df2 <- read.delim(CNVFileName,
+                           header = F,sep = "\t")
+      
+      Colname <- CNV.df2[1,]
+      Rowname <- CNV.df2[,1]
+      CNV.df2 <- CNV.df2[-1,-1]
+      
+      CNV.df2 <- lapply(CNV.df2,as.numeric) %>% as.data.frame()
+      colnames(CNV.df2) <- Colname[-1]
+      row.names(CNV.df2) <- Rowname[-1]
+      
+      rm(Colname,Rowname)
+      
+      TCGA_Sample <- data.frame(sample = colnames((CNV.df2)),Check="1")
+      
+      Pheno_KLC.df$sample <- substr(Pheno_KLC.df$submitter_id.samples,1,nchar(Pheno_KLC.df$submitter_id.samples)-1)
+      Pheno_KLC.df <- left_join(Pheno_KLC.df,TCGA_Sample)
+      
+      write.table(Pheno_KLC.df, file=paste0(Result_Folder_Name,"/Group_Annotation.txt"),
+                  sep="\t", row.names=F, quote = FALSE)
       
