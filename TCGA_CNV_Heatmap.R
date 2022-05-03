@@ -51,7 +51,7 @@
                    "ENSG00000121879","ENSG00000146648","ENSG00000136997","ENSG00000133703","ENSG00000157764") ## MB21D1= CGAS
   
 ##### Current path and new folder setting* ##### 
-  Result_Folder_Name <- paste0(Target_gene_name,"_",Sys.Date()) ## Generate output folder automatically
+  Result_Folder_Name <- paste0(Target_gene_name,"_",Sys.Date(),"_2") ## Generate output folder automatically
   dir.create(Result_Folder_Name)
   
   
@@ -98,7 +98,7 @@
   ## Heatmap color setting
   col_fun = colorRamp2(c(min(CNV.df), 0, max(CNV.df)), 
                        c( "#02994d","#0c1829", "#e81c4b"))
-  col_fun = colorRamp2(c(-2, 0, 2), 
+  col_fun = colorRamp2(c(-1, 0, 1), # c(-2, 0, 2)
                        c( "#02994d","#0c1829", "#e81c4b"))
   
   col_fun(seq(-3, 3))
@@ -257,11 +257,18 @@
         IntGene.set2 <- list()
         for (i in 1:length(IntGene.set)) {
           Gene <- row.names(GeneExp.df)[grepl(IntGene.set[i], row.names(GeneExp.df))]
-          IntGene.set2[i] <-Gene
-        }
-        rm(i)
-        IntGene.set <- IntGene.set2 %>% unlist()
           
+          if(length(Gene)==0){
+            IntGene.set2[i] <- NA
+          }else{
+            IntGene.set2[i] <- Gene 
+          }
+          
+        }
+        rm(i,Gene)
+        IntGene.set <- IntGene.set2 %>% unlist()
+        IntGene.set <- na.omit(IntGene.set)
+        
         row.names(GeneExp.df)[grepl(IntGene.set, row.names(GeneExp.df))]
         
         pdf(
@@ -378,7 +385,7 @@
       TGeneDen.p <- ggplot(Pheno_KLC.df,aes(ENSG00000131747.13,fill=sample_type.samples, color=sample_type.samples)) + 
         xlab("Expression level") + 
         geom_density(alpha = 0.6, fill = "lightgray") + 
-         geom_vline(data=mu, aes(xintercept=grp.mean, color=sample_type.samples),
+        geom_vline(data=mu, aes(xintercept=grp.mean, color=sample_type.samples),
                    linetype="dashed")
       TGeneDen.p %>% BeautifyggPlot(LegPos = c(0.85, 0.85),AxisTitleSize=1.7,
                                    OL_Thick = 1.5) + 
