@@ -380,14 +380,16 @@
       head(mu)
       
       ggplot(Pheno_KLC.df, aes(x=ENSG00000131747.13, color=sample_type.samples)) +
-        geom_density()
+        geom_density()+ 
+        geom_rug() + theme_bw()
 
       # Add vline of the average
       TGeneDen.p <- ggplot(Pheno_KLC.df,aes(ENSG00000131747.13,fill=sample_type.samples, color=sample_type.samples)) + 
         xlab("Expression level") + 
         geom_density(alpha = 0.6, fill = "lightgray") + 
         geom_vline(data=mu, aes(xintercept=grp.mean, color=sample_type.samples),
-                   linetype="dashed")
+                   linetype="dashed")+ 
+        geom_rug() + theme_bw()
       TGeneDen.p %>% BeautifyggPlot(LegPos = c(0.85, 0.85),AxisTitleSize=1.7,
                                    OL_Thick = 1.5) + 
         labs(title= Target_gene_name,
